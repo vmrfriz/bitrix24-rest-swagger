@@ -1,0 +1,629 @@
+openapi: 3.0.3
+
+info:
+  title: Bitrix24 REST API
+  description: |-
+    Неофициальный swagger-файл, собранный на основе официальной документации по REST API Битрикс24.
+  version: 1.0.0
+
+  contact:
+    email: v.mrfriz@gmail.com
+    name: Valeriy Grechukha
+    url: https://github.com/vmrfriz
+
+externalDocs:
+  description: Официальная документация по REST API Битрикс24
+  url: https://dev.1c-bitrix.ru/rest_help/
+
+servers:
+  - url: https://{portal}.bitrix24.ru/rest/{user_id}/{token}
+    variables:
+      portal:
+        default: dev
+        description: Адрес портала (без `.bitrix24.ru`)
+      user_id:
+        default: "1"
+        description: ID пользователя, который создал входящий Webhook
+      token:
+        default: ab123cd4e5fgh6i7
+        description: Токен входящего Webhook
+  - url: https://dev.bitrix24.ru/
+
+tags:
+  - name: general
+    description: Общие методы
+    externalDocs:
+      description: Официальная документация
+      url: https://dev.1c-bitrix.ru/rest_help/general/index.php
+  - name: crm
+    description: CRM
+    externalDocs:
+      description: Официальная документация
+      url: https://dev.1c-bitrix.ru/rest_help/crm/index.php
+  - name: pull-n-push
+    description: Pull and Push
+    externalDocs:
+      description: Официальная документация
+      url: https://dev.1c-bitrix.ru/rest_help/pull_push/index.php
+
+paths:
+
+  /method.get:
+    post:
+      tags:
+        - general
+      summary: Проверка доступности метода на портале
+      operationId: methodGet
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/methodGetRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/methodGetRequest'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/methodGetRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    properties:
+                      isExisting:
+                        type: boolean
+                        example: true
+                      isAvailable:
+                        type: boolean
+                        example: true
+                  time:
+                    $ref: '#/components/schemas/Time'
+        '401':
+          $ref: '#/components/responses/InvalidCredentials'
+        '403':
+          $ref: '#/components/responses/InvalidPortal'
+        '503':
+          $ref: '#/components/responses/TooManyRequests'
+        '5XX':
+          $ref: '#/components/responses/ServerError'
+
+  /methods:
+    post:
+      tags:
+        - general
+      summary: Получение доступных методов API
+      description: Данный метод устарел и в срок до 1 сентября 2022 года будет удалён. Настоятельно рекомендуется использовать метод method.get.
+      operationId: methods
+      deprecated: true
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/methodsRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/methodsRequest'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/methodsRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      type: string
+                  time:
+                    $ref: '#/components/schemas/Time'
+        '401':
+          $ref: '#/components/responses/InvalidCredentials'
+        '403':
+          $ref: '#/components/responses/InvalidPortal'
+        '503':
+          $ref: '#/components/responses/TooManyRequests'
+        '5XX':
+          $ref: '#/components/responses/ServerError'
+
+  /scope:
+    post:
+      tags:
+        - general
+      summary: Получить список разрешений
+      operationId: scope
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/scopeRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/scopeRequest'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/scopeRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      type: string
+                  time:
+                    $ref: '#/components/schemas/Time'
+        '401':
+          $ref: '#/components/responses/InvalidCredentials'
+        '403':
+          $ref: '#/components/responses/InvalidPortal'
+        '503':
+          $ref: '#/components/responses/TooManyRequests'
+        '5XX':
+          $ref: '#/components/responses/ServerError'
+
+  /app.info:
+    post:
+      tags:
+        - general
+      summary: Показ информации о приложении
+      operationId: appInfo
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/x-www-form-urlencoded:
+              schema:
+                $ref: '#/components/schemas/appInfoRequest'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/appInfoRequest'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/appInfoRequest'
+        '401':
+          $ref: '#/components/responses/InvalidCredentials'
+        '403':
+          $ref: '#/components/responses/InvalidPortal'
+        '503':
+          $ref: '#/components/responses/TooManyRequests'
+        '5XX':
+          $ref: '#/components/responses/ServerError'
+
+  /batch:
+    post:
+      tags:
+        - general
+      summary: Выполнение пакета запросов
+      description: В целях оптимизации отправки большого количества запросов, можно группировать их. Количество запросов в пакете ограничено 50.
+      operationId: batch
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/batchRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/batchRequest'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/batchRequest'
+      responses:
+        '200':
+          description: Successful operation
+        '401':
+          $ref: '#/components/responses/InvalidCredentials'
+        '403':
+          $ref: '#/components/responses/InvalidPortal'
+        '503':
+          $ref: '#/components/responses/TooManyRequests'
+        '5XX':
+          $ref: '#/components/responses/ServerError'
+
+  /user.admin:
+    post:
+      tags:
+        - general
+      summary: Проверка прав на управление настройками приложений
+      operationId: userAdmin
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/x-www-form-urlencoded:
+              schema:
+                $ref: '#/components/schemas/userAdminRequest'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/userAdminRequest'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/userAdminRequest'
+        '401':
+          $ref: '#/components/responses/InvalidCredentials'
+        '403':
+          $ref: '#/components/responses/InvalidPortal'
+        '503':
+          $ref: '#/components/responses/TooManyRequests'
+        '5XX':
+          $ref: '#/components/responses/ServerError'
+
+  /user.access:
+    post:
+      tags:
+        - general
+      summary: Проверка обладания правами
+      description: Определение, обладает ли текущий пользователь хотя бы одним из заданного параметром `ACCESS` набора прав
+      operationId: userAccess
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/userAccessRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/userAccessRequest'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/userAccessRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+                  time:
+                    $ref: '#/components/schemas/Time'
+        '401':
+          $ref: '#/components/responses/InvalidCredentials'
+        '403':
+          $ref: '#/components/responses/InvalidPortal'
+        '503':
+          $ref: '#/components/responses/TooManyRequests'
+        '5XX':
+          $ref: '#/components/responses/ServerError'
+
+  /access.name:
+    post:
+      tags:
+        - general
+      summary: Проверка обладания правами
+      description: Определение, обладает ли текущий пользователь хотя бы одним из заданного параметром `ACCESS` набора прав
+      operationId: accessName
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/accessNameRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/accessNameRequest'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/accessNameRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+                  time:
+                    $ref: '#/components/schemas/Time'
+        '401':
+          $ref: '#/components/responses/InvalidCredentials'
+        '403':
+          $ref: '#/components/responses/InvalidPortal'
+        '503':
+          $ref: '#/components/responses/TooManyRequests'
+        '5XX':
+          $ref: '#/components/responses/ServerError'
+
+  /feature.get:
+    post:
+      tags:
+        - general
+      summary: Проверка доступности функции на портале
+      description: Возвращает информацию о доступности функционала на конкретном портале
+      operationId: featureGet
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/featureGetRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/featureGetRequest'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/featureGetRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    properties:
+                      value:
+                        description: Y - да; N - нет
+                        type: string
+                        example: Y
+                  time:
+                    $ref: '#/components/schemas/Time'
+        '401':
+          $ref: '#/components/responses/InvalidCredentials'
+        '403':
+          $ref: '#/components/responses/InvalidPortal'
+        '503':
+          $ref: '#/components/responses/TooManyRequests'
+        '5XX':
+          $ref: '#/components/responses/ServerError'
+
+  /profile:
+    post:
+      tags:
+        - general
+      summary: Базовая информация о текущем пользователе
+      description: Позволяет получить базовую информации о текущем пользователе без каких-либо скоупов в отличие от user.current.
+      operationId: profile
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    $ref: '#/components/schemas/BaseUser'
+                  time:
+                    $ref: '#/components/schemas/Time'
+        '401':
+          $ref: '#/components/responses/InvalidCredentials'
+        '403':
+          $ref: '#/components/responses/InvalidPortal'
+        '503':
+          $ref: '#/components/responses/TooManyRequests'
+        '5XX':
+          $ref: '#/components/responses/ServerError'
+
+  /server.time:
+    post:
+      tags:
+        - general
+      summary: Время на сервере
+      description: Метод возвращает текущее время сервера в формате YYYY-MM-DDThh:mm:ss±hh:mm.
+      operationId: serverTime
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: string
+                    format: date-time
+                    example: "2023-05-27T19:47:10+03:00"
+                  time:
+                    $ref: '#/components/schemas/Time'
+        '401':
+          $ref: '#/components/responses/InvalidCredentials'
+        '403':
+          $ref: '#/components/responses/InvalidPortal'
+        '503':
+          $ref: '#/components/responses/TooManyRequests'
+        '5XX':
+          $ref: '#/components/responses/ServerError'
+
+components:
+  schemas:
+    methodGetRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          default: user.get
+    methodsRequest:
+      type: object
+      properties:
+        full:
+          description: Показ всех методов
+          type: boolean
+          default: true
+        scope:
+          description: "Право из [списка](https://dev.1c-bitrix.ru/rest_help/rest_sum/premissions_scope.php). Если не указано, вернёт все доступные методы для используемого токена."
+          type: string
+    scopeRequest:
+      type: object
+      properties:
+        full:
+          description: Если true, вернёт полный [список разрешений](https://dev.1c-bitrix.ru/rest_help/rest_sum/premissions_scope.php)
+          type: boolean
+          default: false
+    appInfoRequest:
+      type: object
+      properties:
+        result:
+          type: boolean
+          default: true
+        time:
+          $ref: '#/components/schemas/Time'
+    batchRequest:
+      type: object
+      properties:
+        halt:
+          description: Определяет прерывать ли последовательность запросов в случае ошибки
+          type: boolean
+          default: 0
+        cmd:
+          description: Массив запросов стандартного вида. Следует помнить про квотирование данных запросов. Получается, что данные для подзапросов должны пройти двойное квотирование.
+          type: object
+          additionalProperties:
+            type: string
+    userAdminRequest:
+      type: object
+      properties:
+        result:
+          type: boolean
+          example: true
+        time:
+          $ref: '#/components/schemas/Time'
+    userAccessRequest:
+      type: object
+      required:
+        - ACCESS
+      properties:
+        ACCESS:
+          oneOf:
+            - type: string
+            - type: array
+          default:
+            - U22
+            - U33
+    accessNameRequest:
+      type: object
+      required:
+        - ACCESS
+      properties:
+        ACCESS:
+          oneOf:
+            - type: string
+            - type: array
+          default:
+            - U22
+            - U33
+    featureGetRequest:
+      type: object
+      required:
+        - CODE
+      properties:
+        CODE:
+          type: string
+          enum:
+            - rest_offline_extended
+            - rest_auth_connector
+    BaseUser:
+      properties:
+        ID:
+          type: integer
+          description: ID пользователя
+          example: 1
+        ADMIN:
+          type: boolean
+          description: Является ли администратором
+          example: true
+        NAME:
+          type: string
+          description: Имя
+          example: Иван
+        LAST_NAME:
+          type: string
+          description: Фамилия
+          example: Иванов
+        PERSONAL_GENDER:
+          type: string
+          description: "Пол: M - мужской, F - женский"
+          example: M
+          enum: ['M', 'F']
+        PERSONAL_PHOTO:
+          type: string
+          description: Ссылка на аватарку
+          example: https://cdn-ru.bitrix24.ru/b12345678/main/987/987c16dfc3cbf2211b6d00427730eae8/b98763b7b7544c22e0eba9cc9bf8a681.jpg
+        TIME_ZONE:
+          type: string
+          description: "Название часовой зоны"
+          example: ""
+        TIME_ZONE_OFFSET:
+          type: integer
+          description: Отступ часовой зоны от Гринвича в секундах
+          example: 10800
+    Time:
+      properties:
+        start:
+          type: number
+          example: 1685194586.3044159
+        finish:
+          type: number
+          example: 1685194586.354636
+        duration:
+          type: number
+          example: 0.050220012664794922
+        processing:
+          type: number
+          example: 0.001071929931640625
+        date_start:
+          type: string
+          format: date-time
+          example: "2023-05-27T16:36:26+03:00"
+        date_end:
+          type: string
+          format: date-time
+          example: "2023-05-27T16:36:26+03:00"
+        operating_reset_at:
+          type: integer
+          example: 1685195186
+        operating:
+          type: number
+          example: 0
+
+  responses:
+    InvalidCredentials:
+      description: Неверный user_id или token
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                example: "INVALID_CREDENTIALS"
+              error_description:
+                example: "Invalid request credentials"
+    InvalidPortal:
+      description: Портал не существует
+      content:
+        text/html:
+          schema:
+            type: string
+    TooManyRequests:
+      description: "Слишком много запросов. Лимит: квота серверного времени или 4 запроса в секунду"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                example: "QUERY_LIMIT_EXCEEDED"
+              error_description:
+                example: "Too many requests"
+    ServerError:
+      description: Проблема на стороне Битрикс24, повторите запрос позднее
+      content:
+        text/html:
+          schema:
+            type: string
